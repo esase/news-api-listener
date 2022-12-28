@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $SERVICE_NAME
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: $SERVICE_NAME
+  namespace: $SERVICE_NAME
+type: Opaque
+data:
+  mongoHost: $MONGO_HOST
+  rabbitMqHost: $RABBITMQ_HOST
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $SERVICE_NAME
+  namespace: $SERVICE_NAME
+spec:
+  replicas: $REPLICAS
+  selector:
+    matchLabels:
+      app: $SERVICE_NAME
+  template:
+    metadata:
+      namespace: $SERVICE_NAME
+      labels:
+        app: $SERVICE_NAME
+    spec:
+      containers:
+      - name: $SERVICE_NAME
+        image: $IMAGE_NAME
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: MONGO_HOST
+          valueFrom:
+              secretKeyRef:
+                name: $SERVICE_NAME
+                key: mongoHost
+        - name: RABBITMQ_HOST
+          valueFrom:
+              secretKeyRef:
+                name: $SERVICE_NAME
+                key: rabbitMqHost
